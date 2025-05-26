@@ -6,23 +6,55 @@ type (
 		PayType         uint64 `json:"pay_type"`
 		NotifyUrl       string `json:"notify_url"`
 	}
+
 	GetCashRegisterURLResponse {
 		CashRegisterUrl string `json:"cash_register_url"`
 		PrePayId        string `json:"pre_payid"`
 	}
+
 	GetPayUrlQuery {
 		MerchantAppid string `json:"merchant_appid"`
 		PrePayId      string `json:"pre_payid"`
 	}
+
 	GetPayUrlResponse {
 		PayUrl string `json:"payUrl"`
 	}
 )
 
-service Payin {
-	@handler getCashRegisterUrl
-	post /api/payinOrder/getCashRegisterUrl (GetCashRegisterUrlParam) returns (GetCashRegisterURLResponse)
+type (
+	CreatePayoutOrderReq {
+		MerchantAppid     string `json:"merchant_appid"`
+		MerchantOrderNo   string `json:"merchant_order_no"`
+		TransactionAmount int64  `json:"transaction_amount"`
+		WithdrawAccount   string `json:"withdraw_account"`
+		WithdrawName      string `json:"withdraw_name"`
+		WithdrawBankName  string `json:"withdraw_bank_name"`
+		WithdrawMobile    string `json:"withdraw_mobile"`
+		Device            string `json:"device"`
+		NotifyUrl         string `json:"notify_url,optional"`
+	}
 
-	@handler getPayUrl
-	post /api/payinOrder/getPayUrl (GetPayUrlQuery) returns (GetPayUrlResponse)
+	CreatePayoutOrderResp {
+		Code          int32  `json:"code"`
+		Msg           string `json:"msg"`
+		SystemOrderNo string `json:"system_order_no"`
+	}
+)
+
+service Payin {
+	@doc "Get Cash Register Url"
+	@handler GetCashRegisterUrl
+	post /payment/payin/getCashRegisterUrl (GetCashRegisterUrlParam) returns (GetCashRegisterURLResponse)
+
+	@doc "Get Bank Pay Url"
+	@handler GetPayUrl
+	post /payment/payin/getPayUrl (GetPayUrlQuery) returns (GetPayUrlResponse)
+
+	@doc "Create Payout Order"
+	@handler CreatePayoutOrder
+	post /payment/payout/order/create (CreatePayoutOrderReq) returns (CreatePayoutOrderResp)
 }
+
+// goctl api format -dir xxx.api
+// goctl api swagger -api desc/xxx.api -dir docs/
