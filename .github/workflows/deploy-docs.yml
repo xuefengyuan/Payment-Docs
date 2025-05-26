@@ -1,0 +1,65 @@
+name: Deploy API Docs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # 监听 main 分支的推送事件
+    paths:
+      - 'desc/**/*.api' # <-- 监听 desc/ 目录下 .api 文件的变化
+      - 'docs/**'       # 如果 docs/ 目录下的文件有变化
+      - '.github/workflows/deploy-docs.yml' # 工作流文件本身变化时也触发
+  workflow_dispatch: # 允许在 GitHub UI 手动触发此工作流
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # 在 Ubuntu 虚拟机上运行此作业
+
+    permissions:
+      contents: write # 允许 GITHUB_TOKEN 写入仓库内容 (用于 goctl 生成)
+      pages: write    # 允许 GITHUB_TOKEN 写入 GitHub Pages
+      id-token: write # 用于 OIDC 认证 (pages 部署需要)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # 检查并克隆仓库代码到工作目录
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22' # 指定 Go 版本，确保与 goctl 兼容
+
+      - name: Install goctl
+        run: |
+          go install github.com/zeromicro/go-zero/tools/goctl@latest
+          goctl --version # 验证 goctl 是否安装成功
+
+      - name: Generate Swagger JSON from Go-zero API
+        run: |
+          # 调整这里的路径，指向你的 .api 文件在仓库中的实际位置
+          goctl api swagger -api desc/payin.api -dir docs/
+          # 确保你的 docs/index.html 文件中 url: "./swagger.json"
+          # 如果 goctl 生成的文件名是 desc.json，则需要将 docs/index.html 中的 url 改为 "./desc.json"
+          # 或者在这里添加一行 mv docs/desc.json docs/swagger.json 来重命名
+          # 例如：
+          # if [ -f "docs/desc.json" ]; then
+          #   mv docs/desc.json docs/swagger.json
+          # fi
+          if [ -f "docs/payin.json" ]; then
+             mv docs/payin.json docs/swagger.json
+          fi
+
+      # 配置 GitHub Pages 环境
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 上传构建产物 (docs 目录) 作为 Pages artifact
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/' # 上传 docs/ 目录下的所有文件
+
+      # 部署 Pages artifact
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

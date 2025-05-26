@@ -1,0 +1,28 @@
+syntax = "v1"
+
+type CreatePayoutOrderReq {
+	MerchantAppid     string `json:"merchant_appid"`
+	MerchantOrderNo   string `json:"merchant_order_no"`
+	TransactionAmount int64  `json:"transaction_amount"`
+	WithdrawAccount   string `json:"withdraw_account"`
+	WithdrawName      string `json:"withdraw_name"`
+	WithdrawBankName  string `json:"withdraw_bank_name"`
+	WithdrawMobile    string `json:"withdraw_mobile"`
+	Device            string `json:"device"`
+	NotifyUrl         string `json:"notify_url,optional"`
+}
+
+type CreatePayoutOrderResp {
+	Code          int32  `json:"code"`
+	Msg           string `json:"msg"`
+	SystemOrderNo string `json:"system_order_no"`
+}
+
+@server (
+	prefix: /api/v1/payout/payoutOrder/order
+	group:  payout
+)
+service Payout {
+	@handler CreatePayoutOrder
+	post /create (CreatePayoutOrderReq) returns (CreatePayoutOrderResp)
+}

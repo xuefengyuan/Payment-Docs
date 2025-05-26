@@ -1,0 +1,28 @@
+type (
+	GetCashRegisterUrlParam {
+		MerchantAppid   string `json:"merchant_appid"`
+		Amount          uint64 `json:"amount"`
+		MerchantOrderNo string `json:"merchant_order_no"`
+		PayType         uint64 `json:"pay_type"`
+		NotifyUrl       string `json:"notify_url"`
+	}
+	GetCashRegisterURLResponse {
+		CashRegisterUrl string `json:"cash_register_url"`
+		PrePayId        string `json:"pre_payid"`
+	}
+	GetPayUrlQuery {
+		MerchantAppid string `json:"merchant_appid"`
+		PrePayId      string `json:"pre_payid"`
+	}
+	GetPayUrlResponse {
+		PayUrl string `json:"payUrl"`
+	}
+)
+
+service Payin {
+	@handler getCashRegisterUrl
+	post /api/payinOrder/getCashRegisterUrl (GetCashRegisterUrlParam) returns (GetCashRegisterURLResponse)
+
+	@handler getPayUrl
+	post /api/payinOrder/getPayUrl (GetPayUrlQuery) returns (GetPayUrlResponse)
+}
